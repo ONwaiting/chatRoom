@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <style>
+        .wrap {
+            width: 500px;
+            height: 400px;
+            border: 5px solid #ccc;
+            border-radius: 10px;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            box-shadow: 3px 3px 3px 3px #000;
+            overflow-y: scroll;
+        }
+
+        .words ,people{
+            width: 100%;
+            border-bottom: 2px solid #ccc;
+        }
+        .speak{
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 530px;
+        }
+        a{
+            cursor: pointer;
+        }
+        .peoples{
+            width: 200px;
+            height: 300px;
+            border: 2px solid;
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container wrap">
+
+    </div>
+    <div class="peoples">
+    </div>
+    <div class="speak">
+        <span>你好<strong></strong></span>
+        <input type="text">
+        <button class="btn btn-info tel">请发言</button>
+        <button class="btn btn-danger leave">退出聊天室</button>
+    </div>
+
+</body>
+<script src="./node_modules/jquery/dist/jquery.min.js"></script>
+<script src="./node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="./myCookie.js"></script>
+<script>
+    $('.speak')[0].style.top = $('.wrap').offset().top + 450 + 'px'; //初始化样式
+    var timer = null;
+    var peos = []; //保存人名
+    $.get('http://10.31.155.56/project/server/talk/php/room.php', {
+        z: Math.random()
+    }, function (data) {
+        $('.wrap').html("");
+        $('.peoples').html("");
+        var words = JSON.parse(data);
+        //判断是否注册
+        if (words.msg) {
+            document.body.innerHTML = words.msg + '<a class="go">前往注册</a>';
+            $(document).on('click','.go',function(){
+                location.href = './login.html';
+            });
+        } else {
+            timer = setInterval(() => {
+                $.get('http://10.31.155.56/project/server/talk/php/room.php', {
+                    z: Math.random()
+                }, function (data) {
+                    $('.wrap').html("");
+                    var words = JSON.parse(data);
+                    for (var i of words) {
+                        if (typeof i === 'string') {
+                            i = JSON.parse(i);
+                        }
+                        if (i.talk) {
+                            $('.wrap').append(`<div class="words">${i.usm}说：${i.talk}</div>`);
+                        }
+                    }
+                });
+                $.ajax({
+                    url: 'http://10.31.155.56/project/server/talk/php/users.php',
+                    success: function (msg) {
+                        $('.peoples').html("");
+                        var data = JSON.parse(msg);
+                        for (var j of data) {
+                            $('.peoples').append(
+                                `<div class="people"><strong>${j.usm}</strong>进入聊天室</div>`
+                            );
+                        }
+                    }
+                });
+
+            }, 100);
+        }
+
+    });
+    ////发言按钮
+    $('.tel').on('click', function () {
+        if ($('input').val() === '') {
+            alert('请发言');
+        } else {
+            $.ajax({
+                url: 'http://10.31.155.56/project/server/talk/php/speek.php',
+                data: 'talk=' + $('input').val(),
+                success: function (msg) {
+                    if (msg === '1') {
+                        $('input').val('');
+                        setTimeout(function () {
+                            $('.wrap').scrollTop($('.words').length * 100);
+                        }, 100);
+
+                    }
+                }
+            });
+        }
+    });
+    //离开按钮
+    $('.leave').on('click', function () {
+        clearInterval(timer);
+        $.ajax({
+            url: 'http://10.31.155.56/project/server/talk/php/leave.php',
+        });
+        document.body.innerHTML = '期待您的下次光临';
+    });
+</script>
+
+</html>

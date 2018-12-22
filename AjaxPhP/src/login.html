@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container col-lg-6 col-lg-offset-4" style="margin-top:50px;">
+        请取一个网名：<input type="text">
+        <button class="btn btn-info">进入聊天室</button>
+    </div>
+</body>
+<script src="./node_modules/jquery/dist/jquery.min.js"></script>
+<script>
+    $('button').on('click', function () {
+        if ($('input').val()) {
+            $.post('http://10.31.155.56/project/server/talk/php/login.php', {
+                usm: $('input').val()
+            }, function (data) {
+                console.log(data);
+                location.href = 'http://10.31.155.56/project/server/talk/src/room.html';
+            })
+        }else{
+            alert('请输入网名');
+        }
+
+    })
+</script>
+
+</html>
